@@ -23,6 +23,9 @@ dependencies:
   '@cloudflare/stream-react':
     specifier: ^1.2.0
     version: 1.2.0(react@18.2.0)
+  '@logtail/edge':
+    specifier: ^0.4.12
+    version: 0.4.12
   '@logtail/node':
     specifier: ^0.4.12
     version: 0.4.12
@@ -1224,6 +1227,10 @@ packages:
       react: 18.2.0
     dev: false
 
+  /@cloudflare/workers-types@4.20231016.0:
+    resolution: {integrity: sha512-eGB0cRVyoJpeyGJx2re5sbd9R316a61sY73xwnqm4cwGpb+OxCK2gc651RxGiN7H4w6LY1RpysUgeGLmj5B3+g==}
+    dev: false
+
   /@emotion/babel-plugin@11.10.8:
     resolution: {integrity: sha512-gxNky50AJL3AlkbjvTARiwAqei6/tNUxDZPSKd+3jqWVM3AmdVTTdpjHorR/an/M0VJqdsuq5oGcFH+rjtyujQ==}
     dependencies:
@@ -1954,6 +1961,18 @@ packages:
     dependencies:
       '@logtail/tools': 0.4.12
       '@logtail/types': 0.4.11
+    dev: false
+
+  /@logtail/edge@0.4.12:
+    resolution: {integrity: sha512-eInb/WGuUIwDho5bXi2JunwgSBSIM9vaKXxdlWE6GuSQqQIAqpLUhavmKtrOLfdikcs+goG2KxAasjRVFsfp/A==}
+    dependencies:
+      '@cloudflare/workers-types': 4.20231016.0
+      '@logtail/core': 0.4.12
+      '@logtail/types': 0.4.11
+      '@msgpack/msgpack': 2.8.0
+      '@types/stack-trace': 0.0.29
+      minimatch: 3.1.2
+      stack-trace: 0.0.10
     dev: false
 
   /@logtail/node@0.4.12:

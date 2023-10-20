@@ -1,4 +1,4 @@
-import { Logtail } from '@logtail/node';
+import { Logtail } from '@logtail/edge';
 import { OpenAIStream, StreamingTextResponse } from 'ai';
 import OpenAI from 'openai';
 
