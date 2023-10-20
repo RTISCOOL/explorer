@@ -548,6 +548,7 @@ function AICard({ signature }: SignatureProps) {
             <div className="card">
                 <div className="card-header">
                     <h3 className="card-header-title"> AI Explanation</h3>
+                    <p className="card-header-title"> Powered by <a href="https://twitter.com/buildontal">DAIN</a></p>
                 </div>
                 <div className="card-body">
                     <p className="card-text ">
