@@ -23,6 +23,9 @@ dependencies:
   '@cloudflare/stream-react':
     specifier: ^1.2.0
     version: 1.2.0(react@18.2.0)
+  '@logtail/node':
+    specifier: ^0.4.12
+    version: 0.4.12
   '@metamask/jazzicon':
     specifier: ^2.0.0
     version: 2.0.0
@@ -1946,6 +1949,39 @@ packages:
     resolution: {integrity: sha512-fuscdXJ9G1qb7W8VdHi+IwRqij3lBkosAm4ydQtEmbY58OzHXqQhvlxqEkoz0yssNVn38bcpRWgA9PP+OGoisw==}
     dev: false
 
+  /@logtail/core@0.4.12:
+    resolution: {integrity: sha512-2vtwTxdsyMUq9thSV+H3fGaqEbRGwKwWDDr+SdjMfbzhJpi191ZhBxjix0DM6vPvEb7VmX1AuF9qnRV0d7VMzw==}
+    dependencies:
+      '@logtail/tools': 0.4.12
+      '@logtail/types': 0.4.11
+    dev: false
+
+  /@logtail/node@0.4.12:
+    resolution: {integrity: sha512-yRdunGeYzug2o6tWVQBy826J167gbWROvjijlW+bVn4bH94JqVjXX7Jt0bi2nOEfWuPcZW9GyD6DKNGi5+y4jw==}
+    dependencies:
+      '@logtail/core': 0.4.12
+      '@logtail/types': 0.4.11
+      '@msgpack/msgpack': 2.8.0
+      '@types/stack-trace': 0.0.29
+      cross-fetch: 3.1.5
+      minimatch: 3.1.2
+      stack-trace: 0.0.10
+    transitivePeerDependencies:
+      - encoding
+    dev: false
+
+  /@logtail/tools@0.4.12:
+    resolution: {integrity: sha512-AEvUTdpt+dCfXj0m1XW2mZPCDs1qNJW9kOf66DAln41lAACdgjtTORkc+jtD4Qzs5BAfvOY/lCZRxz4mSKpOyg==}
+    dependencies:
+      '@logtail/types': 0.4.11
+    dev: false
+
+  /@logtail/types@0.4.11:
+    resolution: {integrity: sha512-OKp77uP4bi6eyirVnpwt1qqv0ob8pU5ULkyzODLCuC2zp06K3crVmCspw1JY3L+zX8vuplr1bavJlZv3CX9ejQ==}
+    dependencies:
+      js: 0.1.0
+    dev: false
+
   /@metamask/jazzicon@2.0.0:
     resolution: {integrity: sha512-7M+WSZWKcQAo0LEhErKf1z+D3YX0tEDAcGvcKbDyvDg34uvgeKR00mFNIYwAhdAS9t8YXxhxZgsrRBBg6X8UQg==}
     dependencies:
@@ -2274,6 +2310,11 @@ packages:
       form-data: 4.0.0
     transitivePeerDependencies:
       - debug
+    dev: false
+
+  /@msgpack/msgpack@2.8.0:
+    resolution: {integrity: sha512-h9u4u/jiIRKbq25PM+zymTyW6bhTzELvOoUd+AvYriWOAKpLGnIamaET3pnHYoI5iYphAHBI4ayx0MehR+VVPQ==}
+    engines: {node: '>= 10'}
     dev: false
 
   /@next/env@13.4.0:
@@ -3651,6 +3692,10 @@ packages:
     resolution: {integrity: sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw==}
     dev: true
 
+  /@types/stack-trace@0.0.29:
+    resolution: {integrity: sha512-TgfOX+mGY/NyNxJLIbDWrO9DjGoVSW9+aB8H2yy1fy32jsvxijhmyJI9fDFgvz3YP4lvJaq9DzdR/M1bOgVc9g==}
+    dev: false
+
   /@types/stack-utils@2.0.1:
     resolution: {integrity: sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==}
     dev: true
@@ -4795,6 +4840,13 @@ packages:
     engines: {node: '>= 0.8'}
     dependencies:
       delayed-stream: 1.0.0
+
+  /commander@1.1.1:
+    resolution: {integrity: sha512-71Rod2AhcH3JhkBikVpNd0pA+fWsmAaVoti6OR38T76chA7vE3pSerS0Jor4wDw+tOueD2zLVvFOw5H0Rcj7rA==}
+    engines: {node: '>= 0.6.x'}
+    dependencies:
+      keypress: 0.1.0
+    dev: false
 
   /commander@2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
@@ -7088,6 +7140,13 @@ packages:
     dependencies:
       argparse: 2.0.1
 
+  /js@0.1.0:
+    resolution: {integrity: sha512-ZBbGYOpact8QAH9RprFWL4RAESYwbDodxiuDjOnzwzzk9pBzKycoifGuUrHHcDixE/eLMKPHRaXenTgu1qXBqA==}
+    hasBin: true
+    dependencies:
+      commander: 1.1.1
+    dev: false
+
   /jsdom@20.0.3:
     resolution: {integrity: sha512-SYhBvTh89tTfCD/CRdSOm13mOBa42iTaTyfyEWBdKcGdPxPtLFBXuHR8XHb33YNYaP+lLbmSvBTsnoesCNJEsQ==}
     engines: {node: '>=14'}
@@ -7186,6 +7245,10 @@ packages:
       node-addon-api: 2.0.2
       node-gyp-build: 4.6.0
       readable-stream: 3.6.2
+    dev: false
+
+  /keypress@0.1.0:
+    resolution: {integrity: sha512-x0yf9PL/nx9Nw9oLL8ZVErFAk85/lslwEP7Vz7s5SI1ODXZIgit3C5qyWjw4DxOuO/3Hb4866SQh28a1V1d+WA==}
     dev: false
 
   /kleur@3.0.3:
@@ -8461,6 +8524,10 @@ packages:
     dependencies:
       svelte: 4.2.2
       swrev: 4.0.0
+    dev: false
+
+  /stack-trace@0.0.10:
+    resolution: {integrity: sha512-KGzahc7puUKkzyMt+IqAep+TVNbKP+k2Lmwhub39m1AsTSkaDutx56aDCo+HLDzf/D26BIHTJWNiTG1KAJiQCg==}
     dev: false
 
   /stack-utils@2.0.6:

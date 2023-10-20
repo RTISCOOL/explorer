@@ -1,3 +1,4 @@
+import { Logtail } from '@logtail/node';
 import { OpenAIStream, StreamingTextResponse } from 'ai';
 import OpenAI from 'openai';
 
@@ -101,10 +102,29 @@ export async function POST(req: Request) {
 
     `;
 
+    const logtail = new Logtail(process.env.LOGTAIL_SOURCEID as string);
+
+    const id = Math.random().toString(36).substring(7) + new Date().getTime();
+
+    logtail.info('New Chat', {
+        balanceChanges: balanceChanges,
+        id: id,
+        logMessages: logMessages,
+        messages: messages,
+        prompt: prompt,
+        signature: signature,
+        tokenBalanceChanges: tokenBalanceChanges,
+    });
+    logtail.flush();
+
+    function removeLeadingWhitespaces(str: string): string {
+        // Use regular expression to replace leading whitespaces on each line
+        return str.replace(/^\s+/gm, '');
+    }
     const response = await openai.chat.completions.create({
         messages: [
             {
-                content: prompt,
+                content: removeLeadingWhitespaces(prompt),
                 role: 'user',
             },
             ...messages,
@@ -115,6 +135,20 @@ export async function POST(req: Request) {
         stream: true,
     });
 
-    const stream = OpenAIStream(response);
+    const stream = OpenAIStream(response, {
+        onCompletion: async (completion: string) => {
+            logtail.info('Chat Response', {
+                balanceChanges: balanceChanges,
+                completion: completion,
+                id: id,
+                logMessages: logMessages,
+                messages: messages,
+                prompt: prompt,
+                signature: signature,
+                tokenBalanceChanges: tokenBalanceChanges,
+            });
+            logtail.flush();
+        },
+    });
     return new StreamingTextResponse(stream);
 }
