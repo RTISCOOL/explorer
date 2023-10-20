@@ -418,7 +418,7 @@ function AICard({ signature }: SignatureProps) {
 
     const [tokenBalanceChanges, setTokenBalanceChanges] = useState<TokenBalanceRowWithTokenName[]>([]);
     const [logMessages, setLogMessages] = useState<string[]>([]);
-    const { messages, input, handleInputChange, handleSubmit } = useChat({
+    const { messages, input, handleInputChange, handleSubmit, append } = useChat({
         api: '/api/ai',
         body: {
             balanceChanges: balanceChanges,
@@ -543,24 +543,26 @@ function AICard({ signature }: SignatureProps) {
         pullTokenInfo();
     }, [details, cluster, url]);
 
+    const exampleQuestions = [
+        'What is happening in this transaction?',
+        'What is the purpose of this transaction?',
+        'What balance changes are happening in this transaction?',
+    ];
+
     return (
         <>
             <div className="card">
                 <div className="card-header">
                     <h3 className="card-header-title"> AI Explanation</h3>
-                    <p className="card-header-title"> Powered by <a href="https://twitter.com/buildontal">DAIN</a></p>
+                    <p className="card-header-title">
+                        {' '}
+                        Powered by <a href="https://twitter.com/buildontal">DAIN</a>
+                    </p>
                 </div>
                 <div className="card-body">
-                    <p className="card-text ">
-                        <small className="">Ask a question and recieve an answer from AI</small>
-                    </p>
                     <form onSubmit={handleSubmit}>
                         <input
-                            placeholder={
-                                loading
-                                    ? 'Loading AI...'
-                                    : 'Ask a question about this transaction (e.g. summarize what is happening?)'
-                            }
+                            placeholder={loading ? 'Loading AI...' : 'Ask a question about this transaction'}
                             type="text"
                             className=" form-control "
                             value={input}
@@ -571,6 +573,33 @@ function AICard({ signature }: SignatureProps) {
                             Submit
                         </button>
                     </form>
+                    {messages.length == 0 && (
+                        <>
+                            <p className="card-text mt-3">
+                                <small className="">Example Questions</small>
+                            </p>
+                            {exampleQuestions.map((question, index) => {
+                                return (
+                                    <pre
+                                        style={{
+                                            cursor: 'pointer',
+                                        }}
+                                        className="card-text mt-2 p-3"
+                                        key={index}
+                                        onClick={() =>
+                                            append({
+                                                content: question,
+
+                                                role: 'user',
+                                            })
+                                        }
+                                    >
+                                        <small className="">{question}</small>
+                                    </pre>
+                                );
+                            })}
+                        </>
+                    )}
                 </div>
                 <div className="table-responsive mb-0">
                     <table className="table table-sm table-nowrap card-table">
