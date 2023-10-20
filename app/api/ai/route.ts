@@ -147,7 +147,7 @@ export async function POST(req: Request) {
                 signature: signature,
                 tokenBalanceChanges: tokenBalanceChanges,
             });
-            logtail.flush();
+            await logtail.flush();
         },
     });
     return new StreamingTextResponse(stream);
