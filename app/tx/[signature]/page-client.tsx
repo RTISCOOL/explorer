@@ -12,7 +12,11 @@ import { TableCardBody } from '@components/common/TableCardBody';
 import { SignatureContext } from '@components/instruction/SignatureContext';
 import { InstructionsSection } from '@components/transaction/InstructionsSection';
 import { ProgramLogSection } from '@components/transaction/ProgramLogSection';
-import { TokenBalancesCard } from '@components/transaction/TokenBalancesCard';
+import {
+    generateTokenBalanceRows,
+    TokenBalanceRow,
+    TokenBalancesCard,
+} from '@components/transaction/TokenBalancesCard';
 import { FetchStatus } from '@providers/cache';
 import { useCluster } from '@providers/cluster';
 import {
@@ -22,19 +26,31 @@ import {
     useTransactionStatus,
 } from '@providers/transactions';
 import { useFetchTransactionDetails } from '@providers/transactions/parsed';
-import { ParsedTransaction, SystemInstruction, SystemProgram, TransactionSignature } from '@solana/web3.js';
+import {
+    Connection,
+    ParsedTransaction,
+    PublicKey,
+    SystemInstruction,
+    SystemProgram,
+    TokenBalance,
+    TransactionSignature,
+} from '@solana/web3.js';
 import { Cluster, ClusterStatus } from '@utils/cluster';
 import { displayTimestamp } from '@utils/date';
 import { SignatureProps } from '@utils/index';
 import { getTransactionInstructionError } from '@utils/program-err';
-import { intoTransactionInstruction } from '@utils/tx';
+import { displayAddress, intoTransactionInstruction } from '@utils/tx';
 import { useClusterPath } from '@utils/url';
+import { useChat } from 'ai/react';
 import { BigNumber } from 'bignumber.js';
 import bs58 from 'bs58';
 import Link from 'next/link';
 import React, { Suspense, useEffect, useState } from 'react';
 import { RefreshCw, Settings } from 'react-feather';
 import useTabVisibility from 'use-tab-visibility';
+
+import { getTokenInfoWithoutOnChainFallback } from '@/app/utils/token-info';
+import { useAccountInfo } from '@/app/providers/accounts';
 
 const AUTO_REFRESH_INTERVAL = 2000;
 const ZERO_CONFIRMATION_BAILOUT = 5;
@@ -215,8 +231,9 @@ function StatusCard({ signature, autoRefresh }: SignatureProps & AutoRefreshProp
             if (cluster === Cluster.MainnetBeta) {
                 errorLink = err.errorLink;
             } else {
-                errorLink = `${err.errorLink}?cluster=${clusterName.toLowerCase()}${cluster === Cluster.Custom ? `&customUrl=${clusterUrl}` : ''
-                    }`;
+                errorLink = `${err.errorLink}?cluster=${clusterName.toLowerCase()}${
+                    cluster === Cluster.Custom ? `&customUrl=${clusterUrl}` : ''
+                }`;
             }
         }
     }
@@ -374,10 +391,214 @@ function DetailsSection({ signature }: SignatureProps) {
 
     return (
         <>
+            <AICard signature={signature} />
             <AccountsCard signature={signature} />
             <TokenBalancesCard signature={signature} />
             <InstructionsSection signature={signature} />
             <ProgramLogSection signature={signature} />
+        </>
+    );
+}
+export type TokenBalanceRowWithTokenName = TokenBalanceRow & {
+    tokenName: string;
+    tokenOwner: string | null;
+};
+function AICard({ signature }: SignatureProps) {
+    const { cluster, url } = useCluster();
+    const [loading, setLoading] = useState<boolean>(true);
+    const [balanceChanges, setBalanceChanges] = useState<
+        {
+            delta: any;
+            key: string;
+            post: number;
+            pre: number;
+            pubkey: PublicKey;
+            tokenName: string;
+            extraInfo: string;
+        }[]
+    >([]);
+
+    const [tokenBalanceChanges, setTokenBalanceChanges] = useState<TokenBalanceRowWithTokenName[]>([]);
+    const [logMessages, setLogMessages] = useState<string[]>([]);
+    const { messages, input, handleInputChange, handleSubmit } = useChat({
+        api: '/api/ai',
+        body: {
+            balanceChanges: balanceChanges,
+
+            logMessages: logMessages,
+            signature: signature,
+            tokenBalanceChanges: tokenBalanceChanges,
+        },
+    });
+
+    const details = useTransactionDetails(signature);
+
+    React.useEffect(() => {
+        const pullTokenInfo = async () => {
+            const connection = new Connection(url, 'confirmed');
+            const transactionWithMeta = details?.data?.transactionWithMeta;
+            if (!transactionWithMeta) {
+                return;
+            }
+
+            const { meta, transaction } = transactionWithMeta;
+            const { message } = transaction;
+
+            if (!meta || !message) {
+                console.log('no meta or message');
+                return;
+            }
+
+            const balanceChanges: {
+                delta: any;
+                key: string;
+                post: number;
+                pre: number;
+                pubkey: PublicKey;
+                tokenName: string;
+                extraInfo: string;
+            }[] = [];
+            for (let i = 0; i < message.accountKeys.length; i++) {
+                const account = message.accountKeys[i];
+                const pre = meta.preBalances[i];
+                const post = meta.postBalances[i];
+                const pubkey = account.pubkey;
+                const key = account.pubkey.toBase58();
+                const delta = new BigNumber(post).minus(new BigNumber(pre)).toNumber();
+                const tokenInfo = await getTokenInfoWithoutOnChainFallback(new PublicKey(pubkey), cluster);
+                const tokenName = await displayAddress(key, cluster, tokenInfo);
+
+                let extraInfo = '';
+
+                if (i === 0) {
+                    extraInfo += ' Fee Payer';
+                }
+                if (account.signer) {
+                    extraInfo += ' Signer';
+                }
+
+                if (account.writable) {
+                    extraInfo += ' Writable';
+                }
+
+                if (account.source === 'lookupTable') {
+                    extraInfo += ' Address Table Lookup';
+                }
+
+                if (message.instructions.find(ix => ix.programId.equals(pubkey))) {
+                    extraInfo += ' Program';
+                }
+
+                balanceChanges.push({
+                    delta,
+                    extraInfo: extraInfo,
+
+                    key,
+                    post,
+                    pre,
+                    pubkey,
+
+                    tokenName: tokenName,
+                });
+            }
+
+            const preTokenBalances = transactionWithMeta?.meta?.preTokenBalances;
+            const postTokenBalances = transactionWithMeta?.meta?.postTokenBalances;
+            const accountKeys = transactionWithMeta?.transaction.message.accountKeys;
+
+            if (!preTokenBalances || !postTokenBalances || !accountKeys) {
+                return null;
+            }
+
+            const rows = generateTokenBalanceRows(preTokenBalances, postTokenBalances, accountKeys);
+
+            // add token name to rows
+            const tokenBalanceWithnames: TokenBalanceRowWithTokenName[] = [];
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const tokenInfo = await getTokenInfoWithoutOnChainFallback(new PublicKey(row.mint), cluster);
+                const tokenName = await displayAddress(row.mint, cluster, tokenInfo);
+
+                // get the owner of this token account
+
+                const info = await connection.getParsedAccountInfo(row.account);
+                const owner = info.value?.owner.toBase58() || null;
+                if (!owner) {
+                    console.log('no owner');
+                    continue;
+                }
+                const ownerTokenInfo = await getTokenInfoWithoutOnChainFallback(new PublicKey(row.mint), cluster);
+                const ownerName = await displayAddress(owner, cluster, ownerTokenInfo);
+                tokenBalanceWithnames.push({
+                    ...row,
+                    tokenName: tokenName,
+                    tokenOwner: ownerName,
+                });
+            }
+            setTokenBalanceChanges(tokenBalanceWithnames);
+            const logMessages = transactionWithMeta.meta?.logMessages || [];
+
+            setBalanceChanges(balanceChanges);
+            setLogMessages(logMessages);
+            setLoading(false);
+        };
+        pullTokenInfo();
+    }, [details, cluster]);
+
+    return (
+        <>
+            <div className="card">
+                <div className="card-header">
+                    <h3 className="card-header-title"> AI Explanation</h3>
+                </div>
+                <div className="card-body">
+                    <p className="card-text ">
+                        <small className="">Ask a question and recieve an answer from AI</small>
+                    </p>
+                    <form onSubmit={handleSubmit}>
+                        <input
+                            placeholder={
+                                loading
+                                    ? 'Loading AI...'
+                                    : 'Ask a question about this transaction (e.g. summarize what is happening?)'
+                            }
+                            type="text"
+                            className=" form-control "
+                            value={input}
+                            onChange={handleInputChange}
+                            disabled={loading}
+                        />
+                        <button disabled={loading} type="submit" className="btn btn-primary mt-3">
+                            Submit
+                        </button>
+                    </form>
+                </div>
+                <div className="table-responsive mb-0">
+                    <table className="table table-sm table-nowrap card-table">
+                        <tbody className="list">
+                            {messages.map((message, index) => {
+                                const user_role = message.role;
+                                const content = message.content;
+                                return (
+                                    <tr key={index}>
+                                        <td className="flex p-3 ">
+                                            <span className="badge bg-info-soft me-1">{user_role}</span>
+                                            <pre
+                                                style={{
+                                                    whiteSpace: 'pre-wrap',
+                                                }}
+                                                className=" mt-2  "
+                                            >
+                                                {content}
+                                            </pre>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </>
     );
 }

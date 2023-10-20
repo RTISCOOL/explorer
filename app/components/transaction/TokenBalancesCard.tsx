@@ -10,7 +10,7 @@ import useAsyncEffect from 'use-async-effect';
 import { useCluster } from '@/app/providers/cluster';
 import { getTokenInfos } from '@/app/utils/token-info';
 
-type TokenBalanceRow = {
+export type TokenBalanceRow = {
     account: PublicKey;
     mint: string;
     balance: TokenAmount;

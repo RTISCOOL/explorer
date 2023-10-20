@@ -11,6 +11,7 @@
         "test:ci": "jest --ci"
     },
     "dependencies": {
+        "@anthropic-ai/sdk": "^0.6.8",
         "@blockworks-foundation/mango-client": "^3.6.7",
         "@bonfida/spl-name-service": "0.1.30",
         "@cloudflare/stream-react": "^1.2.0",
@@ -27,6 +28,7 @@
         "@solana/web3.js": "^1.66.0",
         "@solflare-wallet/utl-sdk": "^1.4.0",
         "@types/bn.js": "5.1.0",
+        "ai": "^2.2.16",
         "axios": "^0.27.2",
         "bignumber.js": "^9.0.2",
         "bn.js": "5.2.1",
@@ -39,6 +41,7 @@
         "humanize-duration-ts": "^2.1.1",
         "moment": "^2.29.4",
         "next": "13.4.0",
+        "openai": "^4.12.4",
         "p-limit": "^3.1.0",
         "react": "18.2.0",
         "react-chartjs-2": "^5.2.0",
