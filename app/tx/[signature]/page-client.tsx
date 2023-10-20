@@ -587,11 +587,16 @@ function AICard({ signature }: SignatureProps) {
                                         className="card-text mt-2 p-3"
                                         key={index}
                                         onClick={() =>
-                                            append({
-                                                content: question,
-
-                                                role: 'user',
-                                            })
+                                            {
+                                                if(loading){
+                                                    return;
+                                                }
+                                                append({
+                                                    content: question,
+    
+                                                    role: 'user',
+                                                })
+                                            }
                                         }
                                     >
                                         <small className="">{question}</small>
