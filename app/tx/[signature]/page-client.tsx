@@ -32,7 +32,6 @@ import {
     PublicKey,
     SystemInstruction,
     SystemProgram,
-    TokenBalance,
     TransactionSignature,
 } from '@solana/web3.js';
 import { Cluster, ClusterStatus } from '@utils/cluster';
@@ -50,7 +49,6 @@ import { RefreshCw, Settings } from 'react-feather';
 import useTabVisibility from 'use-tab-visibility';
 
 import { getTokenInfoWithoutOnChainFallback } from '@/app/utils/token-info';
-import { useAccountInfo } from '@/app/providers/accounts';
 
 const AUTO_REFRESH_INTERVAL = 2000;
 const ZERO_CONFIRMATION_BAILOUT = 5;
@@ -543,7 +541,7 @@ function AICard({ signature }: SignatureProps) {
             setLoading(false);
         };
         pullTokenInfo();
-    }, [details, cluster]);
+    }, [details, cluster, url]);
 
     return (
         <>
